@@ -1,0 +1,34 @@
+.container {text-align: center;}
+.seat-row li {
+	width: 30px;
+	height: 30px;
+	display: inline-block;
+	margin: 2px;
+	vertical-align: middle;
+}
+
+.seat{
+	background-color: lightblue;
+}
+.aisle {
+	background-color: inherit;
+}	
+
+.seat.selected {background-color: lightgreen;}
+.seat.unavailable {background-color: grey;}
+.selections-remaining {font-weight: bold;}
+
+.seat-row{
+	position: relative;
+	overflow: hidden;
+	margin: 0 auto;;
+    text-align: left;
+	padding: 0;
+}
+
+.stage {
+	height: 50px;
+	width: 500px;
+	margin: 25px auto;
+	border: 1px solid black;
+}

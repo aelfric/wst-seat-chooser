@@ -18,6 +18,10 @@ if(!class_exists('WST_Seat_Chooser')){
         public function __construct(){
             add_action('admin_init', array(&$this, 'admin_init'));
             add_action('admin_menu', array(&$this, 'add_menu'));
+            add_action('woocommerce_before_add_to_cart_button', array(&$this, 'enqueue_scripts'));
+            add_filter('woocommerce_add_cart_item_data', array(&$this, 'record_seat_choices'), 0, 2);
+            add_filter('woocommerce_get_cart_item_from_session', array(&$this, 'read_seat_choices'),0,2);
+            add_filter('woocommerce_get_item_data', array(&$this, 'display_seat_choices'),0,2);
         }
 
         public static function activate(){
@@ -47,6 +51,31 @@ if(!class_exists('WST_Seat_Chooser')){
 
             // Render the settings template
             include(sprintf("%s/settings/settings.php", dirname(__FILE__)));
+        }
+        public function enqueue_scripts(){
+            echo "<input type='hidden' id='seatsChosen' name='seatsChosen' />";
+            wp_enqueue_style('wst_seat_chooser_style', plugins_url('/css/style.css', __FILE__));
+            wp_enqueue_script('wst_seat_chooser',plugins_url('/js/bundle.js', __FILE__),array('jquery')); 
+        }
+
+        public function record_seat_choices($cart_item_meta, $product_id){
+            $cart_item_meta['seats'] = $_POST['seatsChosen'];
+            return $cart_item_meta;
+        }
+
+        public function read_seat_choices($cart_item, $values){
+            if(array_key_exists('seats',$values)){
+                $cart_item['seats'] = $values['seats'];
+            }
+            return $cart_item;
+        }
+        public function display_seat_choices($cart_item, $values){
+            if(array_key_exists('seats',$values)){
+                $cart_item['seats'] = array(
+                    'name' => 'Seats', 
+                    "value" => $values['seats']);
+            }
+            return $cart_item;
         }
     }
 }
