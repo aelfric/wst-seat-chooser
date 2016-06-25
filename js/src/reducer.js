@@ -15,9 +15,11 @@ module.exports = function (state, action) {
             newState.numSelected -= 1;
             break;
         case actions.SUBMIT:
-            document.getElementById('seatsChosen').value = action.payload.selectedSeats.sort();
-            action.payload.modal.close();
-            jQuery('.cart').submit();
+            if(action.payload.selectedSeats.length === newState.numSeats) {
+                document.getElementById('seatsChosen').value = action.payload.selectedSeats.sort();
+                action.payload.modal.close();
+                jQuery('.cart').submit();
+            } 
             break;
         case actions.INIT:
             newState = Object.assign({}, action.payload);

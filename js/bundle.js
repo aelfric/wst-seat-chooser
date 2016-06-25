@@ -11689,7 +11689,7 @@ var actions = require('./actions.js');
 
 module.exports = {
 
-  init : function (numSeats, seatsSelected = [], unavailableSeats = [], inputId) {
+  init : function (numSeats, seatingChart = [], seatsSelected = [], unavailableSeats = [], inputId) {
     var unavailableObj = {};
     unavailableSeats.forEach(function (seatNumber) {
       unavailableObj[seatNumber] = true;
@@ -11699,24 +11699,16 @@ module.exports = {
 	  seatsSelected.forEach(function (seatNumber) {
 		  selectedSeatsObj[seatNumber] = true;
 	  })
+    var maxRowSize = seatingChart.reduce(function(maxLen, nextArr){
+        return Math.max(maxLen, nextArr.length);
+    }, 0);
     return {
       type : actions.INIT,
       payload : {
         numSeats : numSeats,
         numSelected : seatsSelected.length,
-        gridSize: 21,
-        seatingChart : [
-['A17',  'A16',  'A15',  'A14',  'A13',  'A12',  'A11',  'A10',  'A9',   'A8',   'A7',   'A6',   '|',    'A5',   'A4',   'A3',   'A2',   'A1'],
-['|',    'B17',  'B16',  'B15',  'B14',  'B13',  'B12',  'B11',  'B10',  'B9',   'B8',   'B7',   '|',    'B6',   'B5',   'B4',   'B3',   'B2',   'B1'],
-['-'],
-['|',    '|',    'C17',  'C16',  'C15',  'C14',  'C13',  'C12',  'C11',  'C10',  'C9',   'C8',   '|',    'C7',   'C6',   'C5',   'C4',   'C3',   'C2',   'C1'],
-['|',    '|',    '|',    'D16',  'D15',  'D14',  'D13',  'D12',  'D11',  'D10',  'D9',   'D8',   '|',    'D7',   'D6',   'D5',   'D4',   'D3',   'D2',   'D1'],
-['-'],
-['|',    '|',    '|',    '|',    'E15',  'E14',  'E13',  'E12',  'E11',  'E10',  'E9',   'E8',   '|',    'E7',   'E6',   'E5',   'E4',   'E3',   'E2',   'E1'],
-['|',    '|',    '|',    '|',    '|',    '|',    '|',    '|',    '|',    'F10',  'F9',   'F8',   '|',    'F7',   'F6',   'F5',   'F4',   'F3',   'F2',   'F1'],
-['-'],
-['|',    '|',    '|',    '|',    '|',    '|',    '|',    '|',    '|',    '|',    '|',    '|',    '|',    'G4',   'G3',   'G2',   'G1']
-        ],
+        gridSize: maxRowSize,
+        seatingChart : seatingChart,
         selected : selectedSeatsObj,
         unavailable : unavailableObj,
 		inputId: inputId
@@ -11762,6 +11754,7 @@ module.exports = {
 
 }
 
+
 },{"./actions.js":36}],36:[function(require,module,exports){
 exports.SELECT = 'SELECT';
 exports.DESELECT = 'DESELECT';
@@ -11780,6 +11773,7 @@ module.exports = {
         return props.seatingChart.map(function(row){
             return self.seatRow({
                 row: row,
+                gridSize: props.gridSize,
                 selected: props.selected,
                 unavailable: props.unavailable
             }, dispatch);
@@ -11790,7 +11784,7 @@ module.exports = {
         var rowWidth = props.seatWidth * props.seatsPerRow;
         return h('ul', {
             className : 'seat-row',
-            style: {width: '680px'}
+            style: {width: (props.gridSize * 30 + (props.gridSize + 1)*4)+'px'}
         }, props.row.map(function (seatNumber) {
             if(seatNumber !== '|' && seatNumber !== '-') {
                 return self.seat({
@@ -11857,8 +11851,8 @@ var modal = require("./modal.js");
 var $ = require("jquery");
 var components = require('./components.js');
 
-var initialize = function (numSeats, preSelected, unavailableSeats, parentElementId, inputId, modal) {
-    var store = reduce({}, actionCreators.init(numSeats, preSelected, unavailableSeats, inputId));
+var initialize = function (numSeats, seatingChart, preSelected, unavailableSeats, parentElementId, inputId, modal) {
+    var store = reduce({}, actionCreators.init(numSeats, seatingChart, preSelected, unavailableSeats, inputId));
     var tree = render(store); // We need an initial tree
     var rootNode = createElement(tree);
     document.getElementById(parentElementId).appendChild(rootNode); // ... and it should be in the document
@@ -11888,7 +11882,8 @@ var initialize = function (numSeats, preSelected, unavailableSeats, parentElemen
         components.chart({
             seatingChart: store.seatingChart,
             selected: store.selected,
-            unavailable: store.unavailable
+            unavailable: store.unavailable,
+            gridSize: store.gridSize
         }, dispatch),
         components.addToCartButton({
             selected: store.selected,
@@ -11902,7 +11897,6 @@ var initialize = function (numSeats, preSelected, unavailableSeats, parentElemen
 jQuery(document).ready(function () {
     jQuery('.single_add_to_cart_button').off('click');
     jQuery('.single_add_to_cart_button').click(function(event) {
-        console.log('OPEN MODAL!!!');
         modal.open({
             content : "<div id='chooser' style='width: 960px; height: 500px;'></div>"
         });
@@ -11911,7 +11905,14 @@ jQuery(document).ready(function () {
         if (seatsChosenValue.length > 0) {	
             seatsChosen = seatsChosenValue.split(',');
         }
-        initialize(7, seatsChosen, ["C4", "C5", "C6", "C7"], 'chooser', 'seatsChosen', modal);
+        initialize(
+            parseInt(jQuery('input[name=quantity]').val(), 10),
+            jQuery('#seat-data').data('seating-chart').split('\\n').map(function(v){return v.split(',');}), 
+            seatsChosen, 
+            jQuery('#seat-data').data('reserved-seats').split(','), 
+            'chooser', 
+            'seatsChosen', 
+            modal);
         event.preventDefault();
     })
 })
@@ -12010,9 +12011,11 @@ module.exports = function (state, action) {
             newState.numSelected -= 1;
             break;
         case actions.SUBMIT:
-            document.getElementById('seatsChosen').value = action.payload.selectedSeats.sort();
-            action.payload.modal.close();
-            jQuery('.cart').submit();
+            if(action.payload.selectedSeats.length === newState.numSeats) {
+                document.getElementById('seatsChosen').value = action.payload.selectedSeats.sort();
+                action.payload.modal.close();
+                jQuery('.cart').submit();
+            } 
             break;
         case actions.INIT:
             newState = Object.assign({}, action.payload);

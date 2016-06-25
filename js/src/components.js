@@ -10,6 +10,7 @@ module.exports = {
         return props.seatingChart.map(function(row){
             return self.seatRow({
                 row: row,
+                gridSize: props.gridSize,
                 selected: props.selected,
                 unavailable: props.unavailable
             }, dispatch);
@@ -20,7 +21,7 @@ module.exports = {
         var rowWidth = props.seatWidth * props.seatsPerRow;
         return h('ul', {
             className : 'seat-row',
-            style: {width: '680px'}
+            style: {width: (props.gridSize * 30 + (props.gridSize + 1)*4)+'px'}
         }, props.row.map(function (seatNumber) {
             if(seatNumber !== '|' && seatNumber !== '-') {
                 return self.seat({

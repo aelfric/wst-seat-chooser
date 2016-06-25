@@ -10,8 +10,8 @@ var modal = require("./modal.js");
 var $ = require("jquery");
 var components = require('./components.js');
 
-var initialize = function (numSeats, preSelected, unavailableSeats, parentElementId, inputId, modal) {
-    var store = reduce({}, actionCreators.init(numSeats, preSelected, unavailableSeats, inputId));
+var initialize = function (numSeats, seatingChart, preSelected, unavailableSeats, parentElementId, inputId, modal) {
+    var store = reduce({}, actionCreators.init(numSeats, seatingChart, preSelected, unavailableSeats, inputId));
     var tree = render(store); // We need an initial tree
     var rootNode = createElement(tree);
     document.getElementById(parentElementId).appendChild(rootNode); // ... and it should be in the document
@@ -41,7 +41,8 @@ var initialize = function (numSeats, preSelected, unavailableSeats, parentElemen
         components.chart({
             seatingChart: store.seatingChart,
             selected: store.selected,
-            unavailable: store.unavailable
+            unavailable: store.unavailable,
+            gridSize: store.gridSize
         }, dispatch),
         components.addToCartButton({
             selected: store.selected,
@@ -55,7 +56,6 @@ var initialize = function (numSeats, preSelected, unavailableSeats, parentElemen
 jQuery(document).ready(function () {
     jQuery('.single_add_to_cart_button').off('click');
     jQuery('.single_add_to_cart_button').click(function(event) {
-        console.log('OPEN MODAL!!!');
         modal.open({
             content : "<div id='chooser' style='width: 960px; height: 500px;'></div>"
         });
@@ -64,7 +64,14 @@ jQuery(document).ready(function () {
         if (seatsChosenValue.length > 0) {	
             seatsChosen = seatsChosenValue.split(',');
         }
-        initialize(7, seatsChosen, ["C4", "C5", "C6", "C7"], 'chooser', 'seatsChosen', modal);
+        initialize(
+            parseInt(jQuery('input[name=quantity]').val(), 10),
+            jQuery('#seat-data').data('seating-chart').split('\\n').map(function(v){return v.split(',');}), 
+            seatsChosen, 
+            jQuery('#seat-data').data('reserved-seats').split(','), 
+            'chooser', 
+            'seatsChosen', 
+            modal);
         event.preventDefault();
     })
 })

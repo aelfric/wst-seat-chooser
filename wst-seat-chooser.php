@@ -54,6 +54,7 @@ if(!class_exists('WST_Seat_Chooser')){
         }
         public function enqueue_scripts(){
             echo "<input type='hidden' id='seatsChosen' name='seatsChosen' />";
+            echo "<div id='seat-data' data-seating-chart='" . esc_js(get_option('seating_chart')). "' data-reserved-seats='" . esc_js(get_option('reserved_seats')) ."'></div>";
             wp_enqueue_style('wst_seat_chooser_style', plugins_url('/css/style.css', __FILE__));
             wp_enqueue_script('wst_seat_chooser',plugins_url('/js/bundle.js', __FILE__),array('jquery')); 
         }
