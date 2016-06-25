@@ -22,6 +22,7 @@ if(!class_exists('WST_Seat_Chooser')){
             add_filter('woocommerce_add_cart_item_data', array(&$this, 'record_seat_choices'), 0, 2);
             add_filter('woocommerce_get_cart_item_from_session', array(&$this, 'read_seat_choices'),0,2);
             add_filter('woocommerce_get_item_data', array(&$this, 'display_seat_choices'),0,2);
+            add_filter('woocommerce_add_order_item_meta', array(&$this, 'order_seat_choices'),0,3);
         }
 
         public static function activate(){
@@ -77,6 +78,12 @@ if(!class_exists('WST_Seat_Chooser')){
                     "value" => $values['seats']);
             }
             return $cart_item;
+        }
+
+        public function order_seat_choices($itemId, $values, $key){
+            if( isset($values['seats'] ) ){
+                wc_add_order_item_meta($itemId, 'seats', $values['seats'] );
+            }
         }
     }
 }
