@@ -42,6 +42,7 @@ if(!class_exists('WST_Seat_Chooser')){
 
         public function add_menu(){
             add_options_page('WST Seat Chooser Settings', 'WST Seat Chooser', 'manage_options', 'wst_seat_chooser', array(&$this, 'plugin_settings_page'));
+            add_menu_page('WST Performance Seating Chart', 'WST Seat Chooser', 'manage_options', 'wst_seat_chooser', array(&$this, 'display_performance_seating_chart'));
         }
         public function plugin_settings_page()
         {
@@ -84,6 +85,17 @@ if(!class_exists('WST_Seat_Chooser')){
             if( isset($values['seats'] ) ){
                 wc_add_order_item_meta($itemId, 'seats', $values['seats'] );
             }
+        }
+
+        public function display_performance_seating_chart()
+        {
+            if(!current_user_can('manage_options'))
+            {
+                wp_die(__('You do not have sufficient permissions to access this page.'));
+            }
+
+            // Render the settings template
+            include(sprintf("%s/settings/seating-chart.php", dirname(__FILE__)));
         }
     }
 }
