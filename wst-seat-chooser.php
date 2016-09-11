@@ -95,7 +95,24 @@ if(!class_exists('WST_Seat_Chooser')){
             }
 
             // Render the settings template
-            include(sprintf("%s/settings/seating-chart.php", dirname(__FILE__)));
+            //include(sprintf("%s/settings/seating-chart.php", dirname(__FILE__)));
+            //attach your function to the posts_where filter
+            add_filter( 'posts_where' , function($where){
+      global $wpdb;
+      $t_posts = $wpdb->posts;
+      $t_order_items = $wpdb->prefix . "woocommerce_order_items";  
+      $t_order_itemmeta = $wpdb->prefix . "woocommerce_order_itemmeta";
+            $product = 8; 
+            return $where . " AND $product IN (SELECT $t_order_itemmeta.meta_value FROM $t_order_items LEFT JOIN $t_order_itemmeta on $t_order_itemmeta.order_item_id=$t_order_items.order_item_id WHERE $t_order_items.order_item_type='line_item' AND $t_order_itemmeta.meta_key='_product_id' AND $t_posts.ID=$t_order_items.order_id)";
+            } );
+
+            //get posts AND make sure filters are NOT suppressed
+            $posts = get_posts( array( 
+                'post_type' => 'shop_order', 
+                'post_status' => array( 'wc-processing', 'wc-completed' ),
+                'suppress_filters' => FALSE ) );
+
+            print_r($posts);
         }
     }
 }
