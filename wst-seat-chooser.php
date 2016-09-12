@@ -19,6 +19,9 @@ if(!class_exists('WST_Seat_Chooser')){
             add_action('admin_init', array(&$this, 'admin_init'));
             add_action('admin_menu', array(&$this, 'add_menu'));
             add_action('woocommerce_before_add_to_cart_button', array(&$this, 'enqueue_scripts'));
+            add_action( 'init', 'claimed_seats_endpoint' );
+            add_action( 'template_redirect', 'claimed_seats_endpoint_data' );
+            add_action('woocommerce_after_checkout_validation', 'wst_seat_chooser_after_checkout_validation');
             add_filter('woocommerce_add_cart_item_data', array(&$this, 'record_seat_choices'), 0, 2);
             add_filter('woocommerce_get_cart_item_from_session', array(&$this, 'read_seat_choices'),0,2);
             add_filter('woocommerce_get_item_data', array(&$this, 'display_seat_choices'),0,2);
@@ -42,7 +45,7 @@ if(!class_exists('WST_Seat_Chooser')){
 
         public function add_menu(){
             add_options_page('WST Seat Chooser Settings', 'WST Seat Chooser', 'manage_options', 'wst_seat_chooser', array(&$this, 'plugin_settings_page'));
-            add_menu_page('WST Performance Seating Chart', 'WST Seat Chooser', 'manage_options', 'wst_seat_chooser', array(&$this, 'display_performance_seating_chart'));
+            //add_menu_page('WST Performance Seating Chart', 'WST Seat Chooser', 'manage_options', 'wst_seat_chooser', array(&$this, 'display_performance_seating_chart'));
         }
         public function plugin_settings_page()
         {
@@ -115,6 +118,47 @@ if(!class_exists('WST_Seat_Chooser')){
             print_r($posts);
         }
     }
+    
+    function claimed_seats_endpoint() {
+        add_rewrite_tag( '%seating_chart%', '([^&]+)' );
+        add_rewrite_rule( 'seating_chart/([^&]+)/?', 'index.php?seating_chart=$matches[1]', 'top' );
+    }
+
+    function get_unavailable_seats($show_id){
+        global $wpdb;
+        $unavailable_seats = explode(",",get_option('reserved_seats')); 
+        $results = $wpdb->get_results("select meta_value from wp_woocommerce_order_itemmeta meta1 where meta1.order_item_id in (SELECT distinct order_item_id from wp_woocommerce_order_itemmeta meta2 where meta_key = '_variation_id' and meta_value='11') and meta_key = 'seats'");
+        foreach($results as $key => $row){
+            $unavailable_seats = array_merge($unavailable_seats, explode(",", $row->meta_value));
+        }
+
+        return $unavailable_seats;
+    }
+
+    function claimed_seats_endpoint_data(){
+        global $wp_query;
+
+        $seat_tag = $wp_query->get("seating_chart");
+        if (!$seat_tag){
+            return;
+        }
+
+        $seating_data = get_unavailable_seats("");
+        wp_reset_query();
+
+        wp_send_json( $seating_data );
+    }
+
+    function wst_seat_chooser_after_checkout_validation( $posted ) {
+        $unavailable_seats = get_unavailable_seats("");
+        global $woocommerce;
+        foreach($cart = $woocommerce->cart->get_cart() as $cart_item_key => $values){
+            if(!empty(array_intersect(explode(",",$values["seats"]), $unavailable_seats))){
+                wc_add_notice( __( "One or more of the seats you selected is no longer available.", 'woocommerce' ), 'error' );
+                return;
+            }
+        }
+    }
 }
 
 if(class_exists('WST_Seat_Chooser')){
@@ -128,7 +172,7 @@ if(class_exists('WST_Seat_Chooser')){
             $settings_link = '<a href="options-general.php?page=wst_seat_chooser">Settings</a>';
             array_unshift($links, $settings_link);
             return $links;
-        }
+       }
 
         $plugin = plugin_basename(__FILE__);
         add_filter("plugin_action_links_$plugin", 'plugin_settings_link');
