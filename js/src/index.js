@@ -59,19 +59,29 @@ jQuery(document).ready(function () {
         modal.open({
             content : "<div id='chooser' style='width: 960px; height: 500px;'></div>"
         });
-        var seatsChosenValue = document.getElementById('seatsChosen').value
-            var seatsChosen = [];
-        if (seatsChosenValue.length > 0) {	
-            seatsChosen = seatsChosenValue.split(',');
-        }
-        initialize(
-            parseInt(jQuery('input[name=quantity]').val(), 10),
-            jQuery('#seat-data').data('seating-chart').split('\\n').map(function(v){return v.split(',');}), 
-            seatsChosen, 
-            jQuery('#seat-data').data('reserved-seats').split(','), 
-            'chooser', 
-            'seatsChosen', 
-            modal);
+        var seatsChosenValue = "";
+        var seatsChosen = [];
+        jQuery.get({
+            url: "/seating_chart/5445/",
+            data: "",
+            success: function(result){
+                seatsChosenValue = document.getElementById('seatsChosen').value
+                if (seatsChosenValue.length > 0) {	
+                    seatsChosen = seatsChosenValue.split(',');
+                }
+                initialize(
+                    parseInt(jQuery('input[name=quantity]').val(), 10),
+                    jQuery('#seat-data').data('seating-chart').split('\\n').map(function(v){return v.split(',');}), 
+                    seatsChosen, 
+                    result, 
+                    'chooser', 
+                    'seatsChosen', 
+                    modal);
+            }});
+        //document.getElementById('seatsChosen').value
+        //        if (seatsChosenValue.length > 0) {	
+        //            seatsChosen = seatsChosenValue.split(',');
+        //        }
         event.preventDefault();
     })
 })
