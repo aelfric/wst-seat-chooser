@@ -6,12 +6,12 @@ module.exports = {
     var unavailableObj = {};
     unavailableSeats.forEach(function (seatNumber) {
       unavailableObj[seatNumber] = true;
-    })
+    });
 	
 	  var selectedSeatsObj = {};
 	  seatsSelected.forEach(function (seatNumber) {
 		  selectedSeatsObj[seatNumber] = true;
-	  })
+	  });
     var maxRowSize = seatingChart.reduce(function(maxLen, nextArr){
         return Math.max(maxLen, nextArr.length);
     }, 0);
@@ -44,7 +44,7 @@ module.exports = {
 		inputId : inputId,
 		modal: modal
       }
-    }
+    };
   },
 
   select : function (seatNumber) {
@@ -65,5 +65,5 @@ module.exports = {
     };
   }
 
-}
+};
 

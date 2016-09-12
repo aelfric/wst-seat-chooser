@@ -1,13 +1,11 @@
-"use strict"
+"use strict";
 var h = require('virtual-dom/h');
 var diff = require('virtual-dom/diff');
 var patch = require('virtual-dom/patch');
 var createElement = require('virtual-dom/create-element');
-var actions = require('./actions.js');
 var reduce = require('./reducer.js');
 var actionCreators = require('./actionCreators.js');
 var modal = require("./modal.js");
-var $ = require("jquery");
 var components = require('./components.js');
 
 var initialize = function (numSeats, seatingChart, preSelected, unavailableSeats, parentElementId, inputId, modal) {
@@ -51,7 +49,7 @@ var initialize = function (numSeats, seatingChart, preSelected, unavailableSeats
         }, dispatch)]);
     }
 
-}
+};
 
 jQuery(document).ready(function () {
     jQuery('.single_add_to_cart_button').off('click');
@@ -65,7 +63,7 @@ jQuery(document).ready(function () {
             url: "/seating_chart/5445/",
             data: "",
             success: function(result){
-                seatsChosenValue = document.getElementById('seatsChosen').value
+                seatsChosenValue = document.getElementById('seatsChosen').value;
                 if (seatsChosenValue.length > 0) {	
                     seatsChosen = seatsChosenValue.split(',');
                 }
@@ -83,8 +81,8 @@ jQuery(document).ready(function () {
         //            seatsChosen = seatsChosenValue.split(',');
         //        }
         event.preventDefault();
-    })
-})
+    });
+});
 
 // TODO
 //

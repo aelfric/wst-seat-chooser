@@ -26,4 +26,4 @@ module.exports = function (state, action) {
             break;
     }
     return newState;
-}
+};

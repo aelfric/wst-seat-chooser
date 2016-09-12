@@ -14,7 +14,7 @@ module.exports = {
                 selected: props.selected,
                 unavailable: props.unavailable
             }, dispatch);
-        })
+        });
     },
     seatRow: function (props, dispatch) {
         var self = this;
@@ -37,7 +37,7 @@ module.exports = {
                 }
             }
         })
-        )
+        );
     },
     seat: function(props, dispatch) {
         var innerClassName = "seat";
@@ -71,6 +71,6 @@ module.exports = {
             className : "btn-add-to-cart",
             href : "#",
             onclick : dispatch.bind(this, actionCreators.submit(props.selected, props.inputId, props.modal))
-        }, "Add to Cart")
+        }, "Add to Cart");
     }
-}
+};
