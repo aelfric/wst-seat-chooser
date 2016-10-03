@@ -11730,12 +11730,12 @@ module.exports = {
     var unavailableObj = {};
     unavailableSeats.forEach(function (seatNumber) {
       unavailableObj[seatNumber] = true;
-    })
+    });
 	
 	  var selectedSeatsObj = {};
 	  seatsSelected.forEach(function (seatNumber) {
 		  selectedSeatsObj[seatNumber] = true;
-	  })
+	  });
     var maxRowSize = seatingChart.reduce(function(maxLen, nextArr){
         return Math.max(maxLen, nextArr.length);
     }, 0);
@@ -11768,7 +11768,7 @@ module.exports = {
 		inputId : inputId,
 		modal: modal
       }
-    }
+    };
   },
 
   select : function (seatNumber) {
@@ -11789,7 +11789,7 @@ module.exports = {
     };
   }
 
-}
+};
 
 
 },{"./actions.js":36}],36:[function(require,module,exports){
@@ -11814,7 +11814,7 @@ module.exports = {
                 selected: props.selected,
                 unavailable: props.unavailable
             }, dispatch);
-        })
+        });
     },
     seatRow: function (props, dispatch) {
         var self = this;
@@ -11837,7 +11837,7 @@ module.exports = {
                 }
             }
         })
-        )
+        );
     },
     seat: function(props, dispatch) {
         var innerClassName = "seat";
@@ -11871,21 +11871,19 @@ module.exports = {
             className : "btn-add-to-cart",
             href : "#",
             onclick : dispatch.bind(this, actionCreators.submit(props.selected, props.inputId, props.modal))
-        }, "Add to Cart")
+        }, "Add to Cart");
     }
-}
+};
 
 },{"./actionCreators.js":35,"virtual-dom/h":10}],38:[function(require,module,exports){
-"use strict"
+"use strict";
 var h = require('virtual-dom/h');
 var diff = require('virtual-dom/diff');
 var patch = require('virtual-dom/patch');
 var createElement = require('virtual-dom/create-element');
-var actions = require('./actions.js');
 var reduce = require('./reducer.js');
 var actionCreators = require('./actionCreators.js');
 var modal = require("./modal.js");
-var $ = require("jquery");
 var components = require('./components.js');
 
 var initialize = function (numSeats, seatingChart, preSelected, unavailableSeats, parentElementId, inputId, modal) {
@@ -11929,9 +11927,13 @@ var initialize = function (numSeats, seatingChart, preSelected, unavailableSeats
         }, dispatch)]);
     }
 
-}
+};
 
 jQuery(document).ready(function () {
+    var variation_id = null;
+    jQuery( ".single_variation_wrap" ).on( "show_variation", function ( event, variation ) {
+        variation_id = variation.variation_id;
+    } );
     jQuery('.single_add_to_cart_button').off('click');
     jQuery('.single_add_to_cart_button').click(function(event) {
         modal.open({
@@ -11941,9 +11943,9 @@ jQuery(document).ready(function () {
         var seatsChosen = [];
         jQuery.get({
             url: "/seating_chart/5445/",
-            data: "",
+            data: {"variation_id":variation_id},
             success: function(result){
-                seatsChosenValue = document.getElementById('seatsChosen').value
+                seatsChosenValue = document.getElementById('seatsChosen').value;
                 if (seatsChosenValue.length > 0) {	
                     seatsChosen = seatsChosenValue.split(',');
                 }
@@ -11961,8 +11963,8 @@ jQuery(document).ready(function () {
         //            seatsChosen = seatsChosenValue.split(',');
         //        }
         event.preventDefault();
-    })
-})
+    });
+});
 
 // TODO
 //
@@ -11970,7 +11972,7 @@ jQuery(document).ready(function () {
 // 2. check for conflicts before submitting and if one is found, notify the user
 // 3. provide a report for the box office with names per seat.
 
-},{"./actionCreators.js":35,"./actions.js":36,"./components.js":37,"./modal.js":39,"./reducer.js":40,"jquery":7,"virtual-dom/create-element":8,"virtual-dom/diff":9,"virtual-dom/h":10,"virtual-dom/patch":11}],39:[function(require,module,exports){
+},{"./actionCreators.js":35,"./components.js":37,"./modal.js":39,"./reducer.js":40,"virtual-dom/create-element":8,"virtual-dom/diff":9,"virtual-dom/h":10,"virtual-dom/patch":11}],39:[function(require,module,exports){
 var $ = require('jquery');
 
 module.exports = (function () {
@@ -12069,7 +12071,7 @@ module.exports = function (state, action) {
             break;
     }
     return newState;
-}
+};
 
 },{"./actions.js":36}],41:[function(require,module,exports){
 

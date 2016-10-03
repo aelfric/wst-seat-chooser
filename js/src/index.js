@@ -52,6 +52,10 @@ var initialize = function (numSeats, seatingChart, preSelected, unavailableSeats
 };
 
 jQuery(document).ready(function () {
+    var variation_id = null;
+    jQuery( ".single_variation_wrap" ).on( "show_variation", function ( event, variation ) {
+        variation_id = variation.variation_id;
+    } );
     jQuery('.single_add_to_cart_button').off('click');
     jQuery('.single_add_to_cart_button').click(function(event) {
         modal.open({
@@ -61,7 +65,7 @@ jQuery(document).ready(function () {
         var seatsChosen = [];
         jQuery.get({
             url: "/seating_chart/5445/",
-            data: "",
+            data: {"variation_id":variation_id},
             success: function(result){
                 seatsChosenValue = document.getElementById('seatsChosen').value;
                 if (seatsChosenValue.length > 0) {	

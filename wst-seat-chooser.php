@@ -127,7 +127,15 @@ if(!class_exists('WST_Seat_Chooser')){
     function get_unavailable_seats($show_id){
         global $wpdb;
         $unavailable_seats = explode(",",get_option('reserved_seats')); 
-        $results = $wpdb->get_results("select meta_value from wp_woocommerce_order_itemmeta meta1 where meta1.order_item_id in (SELECT distinct order_item_id from wp_woocommerce_order_itemmeta meta2 where meta_key = '_variation_id' and meta_value='11') and meta_key = 'seats'");
+        $results = $wpdb->get_results(
+            $wpdb->prepare(
+                "select meta_value \n"
+                ."from wp_woocommerce_order_itemmeta meta1 \n"
+                ."where meta1.order_item_id in (\n"
+                ."SELECT distinct order_item_id \n"
+                ."from wp_woocommerce_order_itemmeta meta2\n"
+                ."where meta_key = '_variation_id' and meta_value='%s') and meta_key = 'seats'",
+            $_GET["variation_id"]));
         foreach($results as $key => $row){
             $unavailable_seats = array_merge($unavailable_seats, explode(",", $row->meta_value));
         }
