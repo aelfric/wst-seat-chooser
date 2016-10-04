@@ -58,15 +58,22 @@ if(!class_exists('WST_Seat_Chooser')){
             include(sprintf("%s/settings/settings.php", dirname(__FILE__)));
         }
         public function enqueue_scripts(){
-            echo "<input type='hidden' id='seatsChosen' name='seatsChosen' />";
-            echo "<div id='seat-data' data-seating-chart='" . esc_js(get_option('seating_chart')). "' data-reserved-seats='" . esc_js(get_option('reserved_seats')) ."'></div>";
-            wp_enqueue_style('wst_seat_chooser_style', plugins_url('/css/style.css', __FILE__));
-            wp_enqueue_script('wst_seat_chooser',plugins_url('/js/bundle.js', __FILE__),array('jquery')); 
+            global $product;
+            $flag = wst_seat_chooser_enabled($product->get_id());
+            if($flag){
+                echo "<input type='hidden' id='seatsChosen' name='seatsChosen' />";
+                echo "<div id='seat-data' data-seating-chart='" . esc_js(get_option('seating_chart')). "' data-reserved-seats='" . esc_js(get_option('reserved_seats')) ."'></div>";
+                wp_enqueue_style('wst_seat_chooser_style', plugins_url('/css/style.css', __FILE__));
+                wp_enqueue_script('wst_seat_chooser',plugins_url('/js/bundle.js', __FILE__),array('jquery')); 
+            }
         }
 
         public function record_seat_choices($cart_item_meta, $product_id){
-            $cart_item_meta['seats'] = $_POST['seatsChosen'];
-            return $cart_item_meta;
+            $flag = wst_seat_chooser_enabled($product_id);
+            if($flag){
+                $cart_item_meta['seats'] = $_POST['seatsChosen'];
+                return $cart_item_meta;
+            }
         }
 
         public function read_seat_choices($cart_item, $values){
@@ -166,6 +173,19 @@ if(!class_exists('WST_Seat_Chooser')){
                 return;
             }
         }
+    }
+
+    function wst_seat_chooser_enabled($product_id){
+        $terms = wp_get_post_terms( $product_id, 'product_cat' );
+        if(count($terms) > 0){
+            foreach ( $terms as $term ){
+                $categories[] = $term->slug;
+            }
+            if ( in_array( 'tickets', $categories ) ) {
+                return true;
+            } 
+        }
+        return false; 
     }
 }
 
