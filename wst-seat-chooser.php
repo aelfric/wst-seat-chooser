@@ -41,6 +41,7 @@ if(!class_exists('WST_Seat_Chooser')){
         public function init_settings(){
             register_setting('wst_seat_chooser-group', 'seating_chart');
             register_setting('wst_seat_chooser-group','reserved_seats');
+            register_setting('wst_seat_chooser-group','category_name');
         }
 
         public function add_menu(){
@@ -181,7 +182,7 @@ if(!class_exists('WST_Seat_Chooser')){
             foreach ( $terms as $term ){
                 $categories[] = $term->slug;
             }
-            if ( in_array( 'tickets', $categories ) ) {
+            if ( in_array( get_option('category_name'), $categories ) ) {
                 return true;
             } 
         }

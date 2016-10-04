@@ -12,6 +12,10 @@
             <th scope="row"><label for="reserved_seats">Reserved Seats</label></th>
             <td><input type="text" name="reserved_seats" id="reserved_seats" value="<?php echo get_option('reserved_seats'); ?>" /></td>
         </tr>
+        <tr valign="top">
+            <th scope="row"><label for="category_name">Product Category</label></th>
+            <td><input type="text" name="category_name" id="category_name" value="<?php echo get_option('category_name'); ?>" /></td>
+        </tr>
         <?php @submit_button(); ?>
     </form>
 </div>
