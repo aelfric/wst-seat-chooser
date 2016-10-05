@@ -67,3 +67,7 @@
 	margin: 25px auto;
 	border: 1px solid black;
 }
+
+.duplicate_seat_order_error {
+    background-color: #F7F6F7;
+}

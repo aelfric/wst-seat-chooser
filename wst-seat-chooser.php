@@ -21,7 +21,8 @@ if(!class_exists('WST_Seat_Chooser')){
             add_action('woocommerce_before_add_to_cart_button', array(&$this, 'enqueue_scripts'));
             add_action( 'init', 'claimed_seats_endpoint' );
             add_action( 'template_redirect', 'claimed_seats_endpoint_data' );
-            add_action('woocommerce_after_checkout_validation', 'wst_seat_chooser_after_checkout_validation');
+//            add_action('woocommerce_after_checkout_validation', 'wst_seat_chooser_after_checkout_validation');
+            add_action('woocommerce_before_cart_contents', 'wst_seat_chooser_after_checkout_validation');
             add_filter('woocommerce_add_cart_item_data', array(&$this, 'record_seat_choices'), 0, 2);
             add_filter('woocommerce_get_cart_item_from_session', array(&$this, 'read_seat_choices'),0,2);
             add_filter('woocommerce_get_item_data', array(&$this, 'display_seat_choices'),0,2);
@@ -143,7 +144,7 @@ if(!class_exists('WST_Seat_Chooser')){
                 ."SELECT distinct order_item_id \n"
                 ."from wp_woocommerce_order_itemmeta meta2\n"
                 ."where meta_key = '_variation_id' and meta_value='%s') and meta_key = 'seats'",
-            $_GET["variation_id"]));
+            $show_id));
         foreach($results as $key => $row){
             $unavailable_seats = array_merge($unavailable_seats, explode(",", $row->meta_value));
         }
@@ -159,19 +160,32 @@ if(!class_exists('WST_Seat_Chooser')){
             return;
         }
 
-        $seating_data = get_unavailable_seats("");
+        $seating_data = get_unavailable_seats($_GET['variation_id']);
         wp_reset_query();
 
         wp_send_json( $seating_data );
     }
 
-    function wst_seat_chooser_after_checkout_validation( $posted ) {
-        $unavailable_seats = get_unavailable_seats("");
+    function wst_seat_chooser_after_checkout_validation() {
         global $woocommerce;
-        foreach($cart = $woocommerce->cart->get_cart() as $cart_item_key => $values){
-            if(!empty(array_intersect(explode(",",$values["seats"]), $unavailable_seats))){
-                wc_add_notice( __( "One or more of the seats you selected is no longer available.", 'woocommerce' ), 'error' );
-                return;
+        foreach($cart = $woocommerce->cart->get_cart() as $key => $values){
+            $unavailable_seats = get_unavailable_seats($values["variation_id"]);
+            if(wst_seat_chooser_enabled($values["variation_id"])){
+                $conflicts = array_intersect(explode(",",$values["seats"]), $unavailable_seats);
+                if(!empty($conflicts)){
+                    wp_enqueue_style('wst_seat_chooser_style', plugins_url('/css/style.css', __FILE__));
+                    add_filter('woocommerce_cart_item_class', function($default_class, $cart_item, $cart_item_key) use (&$key){
+                        if($cart_item_key == $key){
+                            return $default_class." duplicate_seat_order_error";
+                        } else {
+                            return $default_class;
+                        }
+                    }, 0, 3);
+                    wc_add_notice( __( "The seat(s) ".implode($conflicts,", ")
+                        ." you selected for the performance of ".$values["data"]->get_title()." on "
+                        .$values["variation"]["attribute_date"]." is no longer available.", 'woocommerce' ), 'error' );
+                    return;
+                }
             }
         }
     }
