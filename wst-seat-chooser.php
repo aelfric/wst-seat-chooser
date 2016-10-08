@@ -22,14 +22,40 @@ if(!class_exists('WST_Seat_Chooser')){
             add_action( 'init', 'claimed_seats_endpoint' );
             add_action( 'template_redirect', 'claimed_seats_endpoint_data' );
 //            add_action('woocommerce_after_checkout_validation', 'wst_seat_chooser_after_checkout_validation');
+            add_action('woocommerce_add_to_cart', 'start_seat_timer', 10, 6);
             add_action('woocommerce_before_cart_contents', 'wst_seat_chooser_after_checkout_validation');
             add_filter('woocommerce_add_cart_item_data', array(&$this, 'record_seat_choices'), 0, 2);
             add_filter('woocommerce_get_cart_item_from_session', array(&$this, 'read_seat_choices'),0,2);
             add_filter('woocommerce_get_item_data', array(&$this, 'display_seat_choices'),0,2);
             add_filter('woocommerce_add_order_item_meta', array(&$this, 'order_seat_choices'),0,3);
+            add_action('wp_head', function(){
+                global $woocommerce;
+                $timer = '';
+                if(!is_admin()){
+                    $timer = $woocommerce->session->get('wst_seat_timer_expires');
+                }
+                echo "<script>var timer = (Date.parse('".$timer."') - Date.now()) / (1000);\n";
+                echo <<<EOT
+jQuery(document).ready(function(){
+var div = document.createElement("div");
+div.style.position = 'fixed';
+div.style.top = '0';
+document.body.appendChild(div);
+setInterval(function() {
+    var minutes = parseInt(timer / 60, 10);
+    var seconds = parseInt(timer % 60, 10);
+    seconds = seconds < 10 ? '0' + seconds : seconds;
+    --timer;
+    div.textContent = minutes + ':' + seconds;
+}, 1000)
+});
+</script>
+EOT;
+            });
         }
 
         public static function activate(){
+          create_seat_timer_table();  
         }
 
         public static function deactivate(){
@@ -148,6 +174,15 @@ if(!class_exists('WST_Seat_Chooser')){
         foreach($results as $key => $row){
             $unavailable_seats = array_merge($unavailable_seats, explode(",", $row->meta_value));
         }
+        $results = $wpdb->get_results(
+            $wpdb->prepare(
+                "select seats \n"
+                ."from wp_tmp_seat_reservations \n"
+                ."where variation_id = '%s'\n"
+                ."AND expiry > NOW()",$show_id));
+        foreach($results as $key => $row){
+            $unavailable_seats = array_merge($unavailable_seats, explode(",", $row->seats));
+        }
 
         return $unavailable_seats;
     }
@@ -164,6 +199,27 @@ if(!class_exists('WST_Seat_Chooser')){
         wp_reset_query();
 
         wp_send_json( $seating_data );
+    }
+
+    function start_seat_timer( $cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data){
+        global $woocommerce;
+        global $wpdb;
+
+        date_default_timezone_set('America/New_York');
+        // Display a five minute timer to the user.
+        $date = date('m/d/Y h:i:s a', time()+(60*5));
+        // Record a six minute timer in the system to be conservative
+        $dbDate = gmdate('Y-m-d H:i:s', time()+(60*6));
+        $woocommerce->session->set( 'wst_seat_timer_expires',  $date);
+        $wpdb->insert(
+            "wp_tmp_seat_reservations",
+            array(
+                'expiry' => $dbDate,
+                'seats' => $cart_item_data["seats"],
+                'variation_id' => $variation_id
+            )
+        );
+
     }
 
     function wst_seat_chooser_after_checkout_validation() {
@@ -201,6 +257,22 @@ if(!class_exists('WST_Seat_Chooser')){
             } 
         }
         return false; 
+    }
+
+    function create_seat_timer_table(){
+        global $wpdb;
+        $table_name = $wpdb->prefix . "wst_tmp_seat_reservations";
+        $charset_collate = $wpdb->get_charset_collate();
+
+        $sql = "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            expiry datetime,
+            seats varchar(max),
+            variation_id mediumint(9),
+            PRIMARY KEY (id)
+            ) $charset_collate;";
+        require_once( ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
     }
 }
 
