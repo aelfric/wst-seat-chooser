@@ -97,14 +97,14 @@ if ( ! class_exists( 'WSTSC_Admin' ) ) {
                     $t_posts = $wpdb->posts;
                     $t_order_items = $wpdb->prefix . 'woocommerce_order_items';
                     $t_order_itemmeta = $wpdb->prefix . 'woocommerce_order_itemmeta';
-                    $product_variation = $variation_id;
-                    return $where .= " AND $product_variation IN (SELECT
-                        $t_order_itemmeta.meta_value FROM $t_order_items LEFT
+                    $where .= " AND $t_posts.ID IN (SELECT
+                        $t_order_items.order_id FROM $t_order_items LEFT
                         JOIN $t_order_itemmeta on
                         $t_order_itemmeta.order_item_id=$t_order_items.order_item_id
                         WHERE $t_order_items.order_item_type='line_item' AND
                         $t_order_itemmeta.meta_key='_variation_id' AND
-                        $t_posts.ID=$t_order_items.order_id)";
+                        $t_order_itemmeta.meta_value='$variation_id')";
+                    return $where;
                 }
             );
 
@@ -114,6 +114,7 @@ if ( ! class_exists( 'WSTSC_Admin' ) ) {
                     'post_type' => 'shop_order',
                     'post_status' => array( 'wc-processing', 'wc-completed' ),
                     'suppress_filters' => false,
+                    'numberposts' => -1
                 )
             );
             global $woocommerce;
@@ -126,7 +127,7 @@ if ( ! class_exists( 'WSTSC_Admin' ) ) {
                 $name = $order->get_formatted_billing_full_name();
                 foreach($order->get_items() as $item){
                     $item_meta = $item["item_meta"];
-                    if($wst_seat_chooser->is_enabled($item["product_id"]) && isset($item_meta["seats"])){
+                    if(isset($item_meta["seats"])){
                         foreach(explode(",", $item_meta["seats"][0]) as $seat){
                             $box_offic_chart_data[$seat] = $name;
                         }
