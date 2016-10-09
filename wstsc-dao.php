@@ -41,6 +41,13 @@ if ( ! class_exists( 'WSTSC_DAO' ) ) {
 			);
         }
 
+        public static function parse_seating_chart_option(){
+           return array_map(
+                function($x) { return explode(",", $x); },
+                preg_split("/\\r\\n|\\r|\\n/",get_option( 'seating_chart' ))
+            );
+        }
+
 		public static function create_seat_timer_table() {
 			global $wpdb;
 			$charset_collate = $wpdb->get_charset_collate();

@@ -8,8 +8,10 @@ var actionCreators = require('./actionCreators.js');
 var modal = require("./modal.js");
 var components = require('./components.js');
 
-var initialize = function (numSeats, seatingChart, preSelected, unavailableSeats, parentElementId, inputId, modal) {
-    var store = reduce({}, actionCreators.init(numSeats, seatingChart, preSelected, unavailableSeats, inputId));
+var initialize = function (numSeats, seatingChart, preSelected,
+    unavailableSeats, boxOfficeData, parentElementId, inputId, modal) {
+    var store = reduce({}, actionCreators.init(numSeats, seatingChart,
+        preSelected, unavailableSeats, boxOfficeData, inputId));
     var tree = render(store); // We need an initial tree
     var rootNode = createElement(tree);
     document.getElementById(parentElementId).appendChild(rootNode); // ... and it should be in the document
@@ -40,7 +42,8 @@ var initialize = function (numSeats, seatingChart, preSelected, unavailableSeats
             seatingChart: store.seatingChart,
             selected: store.selected,
             unavailable: store.unavailable,
-            gridSize: store.gridSize
+            gridSize: store.gridSize,
+            boxOfficeData: store.boxOfficeData
         }, dispatch),
         components.addToCartButton({
             selected: store.selected,
@@ -79,6 +82,7 @@ jQuery(document).ready(function () {
                 result["seating_chart"], 
                 seatsChosen, 
                 result["reserved_seats"], 
+                result["boxOfficeData"],
                 'chooser', 
                 'seatsChosen', 
                 modal);

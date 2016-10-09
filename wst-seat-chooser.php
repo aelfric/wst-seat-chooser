@@ -97,23 +97,23 @@ if ( ! class_exists( 'WST_Seat_Chooser' ) ) {
 		public function claimed_seats_endpoint_data() {
 			global $wp_query;
 
-            $seating_chart = array_map(
-                function($x) { return explode(",", $x); },
-                preg_split("/\\r\\n|\\r|\\n/",get_option( 'seating_chart' ))
-            );
-
 			if ( $wp_query->get( 'seating_chart' ) ) {
                 $variation_id = -1;
                 if(isset($_GET['variation_id'])){
                     $variation_id = $_GET['variation_id'];
                 }
+                $seating_chart = WSTSC_DAO::parse_seating_chart_option();
                 $seating_data = WSTSC_DAO::get_unavailable_seats( $variation_id );
+                $box_office_data = array();
+                if ( current_user_can( 'manage_options' ) ) {
+                    $box_office_data = WSTSC_Admin::get_reservation_name_data($variation_id);
+                }
                 wp_reset_query();
                 wp_send_json( 
                     array(
                         'seating_chart' => $seating_chart,
-                        'reserved_seats' => $seating_data 
-                    )
+                        'reserved_seats' => $seating_data,
+                        'boxOfficeData' => $box_office_data)
                 );
             }
 		}

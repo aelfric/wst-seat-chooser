@@ -2,7 +2,7 @@ var actions = require('./actions.js');
 
 module.exports = {
 
-  init : function (numSeats, seatingChart = [], seatsSelected = [], unavailableSeats = [], inputId) {
+  init : function (numSeats, seatingChart = [], seatsSelected = [], unavailableSeats = [], boxOfficeData = [], inputId) {
     var unavailableObj = {};
     unavailableSeats.forEach(function (seatNumber) {
       unavailableObj[seatNumber] = true;
@@ -24,6 +24,7 @@ module.exports = {
         seatingChart : seatingChart,
         selected : selectedSeatsObj,
         unavailable : unavailableObj,
+        boxOfficeData: boxOfficeData,
 		inputId: inputId
       }
     };
