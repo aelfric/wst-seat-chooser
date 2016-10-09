@@ -17,7 +17,7 @@ if ( ! class_exists( 'WSTSC_DAO' ) ) {
 					. "WHERE meta_key = '_variation_id' AND meta_value='%s') AND meta_key = 'seats'"
 					. "UNION ALL\n"
 					. "SELECT seats \n"
-					. "FROM $table_name \n"
+					. "FROM " . self::$table_name . "\n"
 					. "WHERE variation_id = '%s'\n"
 					. 'AND expiry > NOW()', $show_id, $show_id
 				)
@@ -32,7 +32,7 @@ if ( ! class_exists( 'WSTSC_DAO' ) ) {
         public static function add_temp_reservation($seats, $show_id, $minutes ){
             global $wpdb;
 			$wpdb->insert(
-                $table_name,
+                self::$table_name,
 				array(
 					'expiry' => gmdate( 'Y-m-d H:i:s', time() + (60 * $minutes) ),
 					'seats' => $seats,

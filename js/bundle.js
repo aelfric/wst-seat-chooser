@@ -11930,38 +11930,42 @@ var initialize = function (numSeats, seatingChart, preSelected, unavailableSeats
 };
 
 jQuery(document).ready(function () {
-    var variation_id = null;
+    // A user cannot update their order quantity from the the shopping
+    // cart, because this would require them to re-select seats
+    jQuery('.wst_seat_choice_item .quantity input').attr("disabled", true); 
+    var variation_id = jQuery('.single_variation_wrap .variation_id').val();
     jQuery( ".single_variation_wrap" ).on( "show_variation", function ( event, variation ) {
         variation_id = variation.variation_id;
     } );
     jQuery('.single_add_to_cart_button').off('click');
     jQuery('.single_add_to_cart_button').click(function(event) {
+        if( jQuery(this).hasClass('disabled')){
+            return;
+        }
         modal.open({
             content : "<div id='chooser' style='width: 960px; height: 500px;'></div>"
         });
         var seatsChosenValue = "";
         var seatsChosen = [];
+        var intializeModal = function(result){
+            seatsChosenValue = document.getElementById('seatsChosen').value;
+            if (seatsChosenValue.length > 0) {	
+                seatsChosen = seatsChosenValue.split(',');
+            }
+            initialize(
+                parseInt(jQuery('input[name=quantity]').val(), 10),
+                result["seating_chart"], 
+                seatsChosen, 
+                result["reserved_seats"], 
+                'chooser', 
+                'seatsChosen', 
+                modal);
+        }
         jQuery.get({
             url: "/seating_chart/5445/",
             data: {"variation_id":variation_id},
-            success: function(result){
-                seatsChosenValue = document.getElementById('seatsChosen').value;
-                if (seatsChosenValue.length > 0) {	
-                    seatsChosen = seatsChosenValue.split(',');
-                }
-                initialize(
-                    parseInt(jQuery('input[name=quantity]').val(), 10),
-                    jQuery('#seat-data').data('seating-chart').split('\\n').map(function(v){return v.split(',');}), 
-                    seatsChosen, 
-                    result, 
-                    'chooser', 
-                    'seatsChosen', 
-                    modal);
-            }});
-        //document.getElementById('seatsChosen').value
-        //        if (seatsChosenValue.length > 0) {	
-        //            seatsChosen = seatsChosenValue.split(',');
-        //        }
+            success: intializeModal
+        });
         event.preventDefault();
     });
 });

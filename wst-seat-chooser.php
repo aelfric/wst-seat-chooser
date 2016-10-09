@@ -36,12 +36,23 @@ if ( ! class_exists( 'WST_Seat_Chooser' ) ) {
 			'WST_Seat_Choice::save_to_order' , 0, 3 );
 			add_filter( 'woocommerce_get_cart_item_from_session',
 			'WST_Seat_Choice::read_to_cart_from_session', 0, 2 );
-			add_filter( 'woocommerce_get_item_data',
-			'WST_Seat_Choice::do_display_filter' , 0, 2 );
+			add_filter( 'woocommerce_get_item_data','WST_Seat_Choice::do_display_filter' , 0, 2 );
+            add_filter(
+                'woocommerce_cart_item_class', 
+                function ( $default_class, $cart_item, $cart_item_key ) {
+                    if ($this->is_enabled($cart_item["product_id"])){
+                        return $default_class . ' wst_seat_choice_item';
+                    } else {
+                        return $default_class;
+                    }
+                }, 0, 3);
 
 			add_action(
                 'wp_head', function () {
                     wp_enqueue_script( 'wst-sc-timer', plugins_url( '/js/wst-sc-timer.js', __FILE__ ), array( 'jquery' ) );
+				    wp_enqueue_script( 'wst_seat_chooser', plugins_url( '/js/bundle.js', __FILE__ ), array( 'jquery', 'woocommerce' ) );
+                    wp_enqueue_style( 'wst_seat_chooser_style', plugins_url( '/css/style.css', __FILE__ ) );
+
 					global $woocommerce;
 					$timer = '';
 					if ( ! is_admin() ) {
@@ -64,9 +75,6 @@ if ( ! class_exists( 'WST_Seat_Chooser' ) ) {
 			global $product;
 			if($this->is_enabled( $product->get_id() ) ) {
 				echo "<input type='hidden' id='seatsChosen' name='seatsChosen' />";
-				echo "<div id='seat-data' data-seating-chart='" . esc_js( get_option( 'seating_chart' ) ) . "' data-reserved-seats='" . esc_js( get_option( 'reserved_seats' ) ) . "'></div>";
-				wp_enqueue_style( 'wst_seat_chooser_style', plugins_url( '/css/style.css', __FILE__ ) );
-				wp_enqueue_script( 'wst_seat_chooser', plugins_url( '/js/bundle.js', __FILE__ ), array( 'jquery' ) );
 			}
 		}
 
@@ -80,14 +88,32 @@ if ( ! class_exists( 'WST_Seat_Chooser' ) ) {
 		public function claimed_seats_endpoint_data() {
 			global $wp_query;
 
+            $seating_chart = array_map(
+                function($x) { return explode(",", $x); },
+                preg_split("/\\r\\n|\\r|\\n/",get_option( 'seating_chart' ))
+            );
+
 			if ( $wp_query->get( 'seating_chart' ) ) {
-                $seating_data = WSTSC_DAO::get_unavailable_seats( $_GET['variation_id'] );
+                $variation_id = -1;
+                if(isset($_GET['variation_id'])){
+                    $variation_id = $_GET['variation_id'];
+                }
+                $seating_data = WSTSC_DAO::get_unavailable_seats( $variation_id );
                 wp_reset_query();
-                wp_send_json( $seating_data );
+                wp_send_json( 
+                    array(
+                        'seating_chart' => $seating_chart,
+                        'reserved_seats' => $seating_data 
+                    )
+                );
             }
 		}
 
 		public function start_seat_timer( $cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data ) {
+            if( ! $this->is_enabled($product_id) ){
+                return;
+            }
+
 			global $woocommerce;
             global $wpdb;
             $minutes = 5;
