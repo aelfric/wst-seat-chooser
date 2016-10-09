@@ -111,8 +111,8 @@ if ( ! class_exists( 'WST_Seat_Chooser' ) ) {
                 wp_reset_query();
                 wp_send_json( 
                     array(
-                        'seating_chart' => $seating_chart,
-                        'reserved_seats' => $seating_data,
+                        'seatingChart' => $seating_chart,
+                        'unavailable' => $seating_data,
                         'boxOfficeData' => $box_office_data)
                 );
             }

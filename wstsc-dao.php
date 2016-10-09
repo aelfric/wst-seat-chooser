@@ -25,8 +25,12 @@ if ( ! class_exists( 'WSTSC_DAO' ) ) {
 			foreach ( $results as $key => $row ) {
 				$unavailable_seats = array_merge( $unavailable_seats, explode( ',', $row->seats ) );
 			}
-
-			return $unavailable_seats;
+            
+            $is_unavailable = array();
+            foreach($unavailable_seats as $seat){
+                $is_unavailable[$seat] =true;
+            }
+			return $is_unavailable;
 		}
 
         public static function add_temp_reservation($seats, $show_id, $minutes ){

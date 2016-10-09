@@ -11726,69 +11726,61 @@ var actions = require('./actions.js');
 
 module.exports = {
 
-  init : function (numSeats, seatingChart = [], seatsSelected = [], unavailableSeats = [], boxOfficeData = [], inputId) {
-    var unavailableObj = {};
-    unavailableSeats.forEach(function (seatNumber) {
-      unavailableObj[seatNumber] = true;
-    });
-	
-	  var selectedSeatsObj = {};
-	  seatsSelected.forEach(function (seatNumber) {
-		  selectedSeatsObj[seatNumber] = true;
-	  });
-    var maxRowSize = seatingChart.reduce(function(maxLen, nextArr){
-        return Math.max(maxLen, nextArr.length);
-    }, 0);
-    return {
-      type : actions.INIT,
-      payload : {
-        numSeats : numSeats,
-        numSelected : seatsSelected.length,
-        gridSize: maxRowSize,
-        seatingChart : seatingChart,
-        selected : selectedSeatsObj,
-        unavailable : unavailableObj,
-        boxOfficeData: boxOfficeData,
-		inputId: inputId
-      }
-    };
+    init : function (numSeats, seatsSelected = [], inputId, initialState) {
+        var selectedSeatsObj = {};
+        seatsSelected.forEach(function (seatNumber) {
+            selectedSeatsObj[seatNumber] = true;
+        });
+        var maxRowSize = initialState["seatingChart"].reduce(function(maxLen, nextArr){
+            return Math.max(maxLen, nextArr.length);
+        }, 0);
+        return {
+            type : actions.INIT,
+            payload : Object.assign(initialState, {
+                numSeats : numSeats,
+                numSelected : seatsSelected.length,
+                gridSize: maxRowSize,
+                selected : selectedSeatsObj,
+                inputId: inputId
+            })
+        };
 
-  },
+    },
 
-  submit : function (selectedObj, inputId, modal) {
-    var arr = [];
-    for (var i in selectedObj) {
-      if (selectedObj[i] === true) {
-        arr.push(i);
-      }
+    submit : function (selectedObj, inputId, modal) {
+        var arr = [];
+        for (var i in selectedObj) {
+            if (selectedObj[i] === true) {
+                arr.push(i);
+            }
+        }
+        return {
+            type : actions.SUBMIT,
+            payload : {
+                selectedSeats : arr,
+                inputId : inputId,
+                modal: modal
+            }
+        };
+    },
+
+    select : function (seatNumber) {
+        return {
+            type : actions.SELECT,
+            payload : {
+                seatNumber : seatNumber
+            }
+        };
+    },
+
+    deselect : function (seatNumber) {
+        return {
+            type : actions.DESELECT,
+            payload : {
+                seatNumber : seatNumber
+            }
+        };
     }
-    return {
-      type : actions.SUBMIT,
-      payload : {
-        selectedSeats : arr,
-		inputId : inputId,
-		modal: modal
-      }
-    };
-  },
-
-  select : function (seatNumber) {
-    return {
-      type : actions.SELECT,
-      payload : {
-        seatNumber : seatNumber
-      }
-    };
-  },
-
-  deselect : function (seatNumber) {
-    return {
-      type : actions.DESELECT,
-      payload : {
-        seatNumber : seatNumber
-      }
-    };
-  }
 
 };
 
@@ -11889,13 +11881,17 @@ var actionCreators = require('./actionCreators.js');
 var modal = require("./modal.js");
 var components = require('./components.js');
 
-var initialize = function (numSeats, seatingChart, preSelected,
-    unavailableSeats, boxOfficeData, parentElementId, inputId, modal) {
-    var store = reduce({}, actionCreators.init(numSeats, seatingChart,
-        preSelected, unavailableSeats, boxOfficeData, inputId));
-    var tree = render(store); // We need an initial tree
+var initialize = function (numSeats, preSelected, parentElementId, inputId,
+    modal, initialState) {
+    var store = reduce({}, 
+        actionCreators.init(
+            numSeats, 
+            preSelected, 
+            inputId, 
+            initialState));
+    var tree = render(store); 
     var rootNode = createElement(tree);
-    document.getElementById(parentElementId).appendChild(rootNode); // ... and it should be in the document
+    document.getElementById(parentElementId).appendChild(rootNode); 
     function dispatch(action) {
         store = reduce(store, action);
         update(store);
@@ -11960,13 +11956,11 @@ jQuery(document).ready(function () {
             }
             initialize(
                 parseInt(jQuery('input[name=quantity]').val(), 10),
-                result["seating_chart"], 
                 seatsChosen, 
-                result["reserved_seats"], 
-                result["boxOfficeData"],
                 'chooser', 
                 'seatsChosen', 
-                modal);
+                modal, 
+                result);
         }
         jQuery.get({
             url: "/seating_chart/5445/",
@@ -11976,12 +11970,6 @@ jQuery(document).ready(function () {
         event.preventDefault();
     });
 });
-
-// TODO
-//
-// 1. tie into woocommerce - this screen should come up after add-to-cart
-// 2. check for conflicts before submitting and if one is found, notify the user
-// 3. provide a report for the box office with names per seat.
 
 },{"./actionCreators.js":35,"./components.js":37,"./modal.js":39,"./reducer.js":40,"virtual-dom/create-element":8,"virtual-dom/diff":9,"virtual-dom/h":10,"virtual-dom/patch":11}],39:[function(require,module,exports){
 var $ = require('jquery');
