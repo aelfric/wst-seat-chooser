@@ -3,11 +3,16 @@ jQuery(document).ready(function(){
     div.style.position = 'fixed';
     div.style.top = '0';
     document.body.appendChild(div);
-    setInterval(function() {
-        var minutes = parseInt(timer / 60, 10);
-        var seconds = parseInt(timer % 60, 10);
+    var timerCallback = setInterval(function() {
+        timer = (timer_expiration - Date.now()) / 1000; 
+        var minutes = Math.floor(timer / 60);
+        var seconds = Math.floor(timer % 60);
         seconds = seconds < 10 ? '0' + seconds : seconds;
-        --timer;
+        if( (timer) < 0){
+            alert('removing item from cart!');
+            clearInterval(timerCallback);
+            document.body.removeChild(div);
+        }
         div.textContent = minutes + ':' + seconds;
     }, 1000)
 });

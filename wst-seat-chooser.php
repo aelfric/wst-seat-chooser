@@ -49,16 +49,25 @@ if ( ! class_exists( 'WST_Seat_Chooser' ) ) {
 
 			add_action(
                 'wp_head', function () {
-                    wp_enqueue_script( 'wst-sc-timer', plugins_url( '/js/wst-sc-timer.js', __FILE__ ), array( 'jquery' ) );
 				    wp_enqueue_script( 'wst_seat_chooser', plugins_url( '/js/bundle.js', __FILE__ ), array( 'jquery', 'woocommerce' ) );
                     wp_enqueue_style( 'wst_seat_chooser_style', plugins_url( '/css/style.css', __FILE__ ) );
 
 					global $woocommerce;
-					$timer = '';
-					if ( ! is_admin() ) {
-						$timer = $woocommerce->session->get( 'wst_seat_timer_expires' );
-					}
-					echo "<script>var timer = (Date.parse('" . $timer . "') - Date.now()) / (1000);</script>";
+
+                    $timer_expiration = $woocommerce->session->get('wst_seat_timer_expires');
+
+                    date_default_timezone_set( 'America/New_York' );
+                    if (null !== $timer_expiration) {
+                        if ( strtotime($timer_expiration) > time() ){
+                        wp_enqueue_script( 'wst-sc-timer', plugins_url( '/js/wst-sc-timer.js', __FILE__ ), array( 'jquery' ) );
+                        echo "<script>var timer_expiration = Date.parse('" . $timer_expiration . "');</script>";
+                        } else {
+                            $woocommerce->cart->set_quantity(
+                                $woocommerce->session->get('wst_seat_timer_cart_item'),
+                                0
+                            );
+                        }
+                    }
 				}
 			);
 		}
@@ -116,15 +125,15 @@ if ( ! class_exists( 'WST_Seat_Chooser' ) ) {
 
 			global $woocommerce;
             global $wpdb;
-            $minutes = 5;
+            $minutes = 3;
 
 			// Display a timer to the user.
 			date_default_timezone_set( 'America/New_York' );
             $woocommerce->session->set( 
                 'wst_seat_timer_expires',
-                date( 'm/d/Y h:i:s a', time() + (60 * $minutes) )
+                date( 'm/d/Y h:i:s a', strtotime("+ $minutes minutes", time()) )
             );
-
+            $woocommerce->session->set( 'wst_seat_timer_cart_item', $cart_item_key);
 			// Record a timer in the system (add one more minute to be conservative)
             WSTSC_DAO::add_temp_reservation($cart_item_data["seats"], $variation_id, $minutes + 1);
 		}
