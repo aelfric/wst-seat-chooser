@@ -87,6 +87,7 @@ if ( ! class_exists( 'WSTSC_Admin' ) ) {
                 }
                 echo "</div>";
             }
+            echo "<div id='box-office-chart'></div>";
                 print_r($box_offic_chart_data);
         }
 

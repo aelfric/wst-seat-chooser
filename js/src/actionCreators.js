@@ -2,7 +2,7 @@ var actions = require('./actions.js');
 
 module.exports = {
 
-    init : function (numSeats, seatsSelected = [], inputId, initialState) {
+    init : function (numSeats, seatsSelected, inputId, initialState) {
         var selectedSeatsObj = {};
         seatsSelected.forEach(function (seatNumber) {
             selectedSeatsObj[seatNumber] = true;
