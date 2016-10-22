@@ -33,7 +33,8 @@ if (typeof Object.assign != 'function') {
     })();
 }
 var initialize = function (numSeats, preSelected, parentElementId, inputId,
-    modal, initialState) {
+    modal, initialState, seatWidth) {
+    initialState["seatWidth"] = 43;
     var store = reduce({}, 
         actionCreators.init(
             numSeats, 
@@ -71,7 +72,8 @@ var initialize = function (numSeats, preSelected, parentElementId, inputId,
             selected: store.selected,
             unavailable: store.unavailable,
             gridSize: store.gridSize,
-            boxOfficeData: store.boxOfficeData
+            boxOfficeData: store.boxOfficeData,
+            seatWidth: store.seatWidth
         }, dispatch),
         components.addToCartButton({
             selected: store.selected,
@@ -81,6 +83,14 @@ var initialize = function (numSeats, preSelected, parentElementId, inputId,
     }
 
 };
+
+function getSeatData(variation_id, callback){
+    jQuery.get({
+        url: "/seating_chart/display/",
+        data: {"variation_id":variation_id},
+        success: callback
+    });
+}
 
 jQuery(document).ready(function () {
     // A user cannot update their order quantity from the the shopping
@@ -113,11 +123,41 @@ jQuery(document).ready(function () {
                 modal, 
                 result);
         }
-        jQuery.get({
-            url: "/seating_chart/5445/",
-            data: {"variation_id":variation_id},
-            success: intializeModal
-        });
+        getSeatData(
+            variation_id,
+            intializeModal
+        );
         event.preventDefault();
     });
+
+    var BOX_OFFICE_CHART = 'box-office-chart';
+    if(jQuery('#box-office-chart').length){
+        jQuery('#btn-print').click(function(){
+            var restorepage = jQuery('body').html();
+            var restorehead = jQuery('head').html();
+            
+            var printcontent = jQuery('#'+BOX_OFFICE_CHART).html();
+
+            jQuery('head').html(jQuery('#wst_seat_chooser_style-css')[0].outerHTML);
+            jQuery('body').html(printcontent);
+
+            window.print();
+            jQuery('body').html(restorepage);
+            jQuery('head').html(restorehead);
+        });
+        jQuery('#wst-show-select').change(function(){
+            getSeatData(
+                jQuery(this).val(),
+                function(result){ 
+                    initialize(
+                        0,
+                        [], 
+                        BOX_OFFICE_CHART,
+                        null, 
+                        null, 
+                        result);
+                }
+            );
+        });
+    }
 });

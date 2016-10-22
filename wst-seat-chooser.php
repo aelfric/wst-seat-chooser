@@ -125,7 +125,7 @@ if ( ! class_exists( 'WST_Seat_Chooser' ) ) {
 
 			global $woocommerce;
             global $wpdb;
-            $minutes = 3;
+            $minutes = get_option('order_timeout');
 
 			// Display a timer to the user.
 			date_default_timezone_set( 'America/New_York' );

@@ -16,6 +16,10 @@
             <th scope="row"><label for="category_name">Product Category</label></th>
             <td><input type="text" name="category_name" id="category_name" value="<?php echo get_option('category_name'); ?>" /></td>
         </tr>
+        <tr valign="top">
+            <th scope="row"><label for="order_timeout">Order Timeout</label></th>
+            <td><input type="text" name="order_timeout" id="order_timeout" value="<?php echo get_option('order_timeout'); ?>" /></td>
+        </tr>
         <?php @submit_button(); ?>
     </form>
 </div>

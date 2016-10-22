@@ -13,7 +13,8 @@ module.exports = {
                 gridSize: props.gridSize,
                 selected: props.selected,
                 unavailable: props.unavailable,
-                boxOfficeData: props.boxOfficeData
+                boxOfficeData: props.boxOfficeData,
+                seatWidth: props.seatWidth
             }, dispatch);
         });
     },
@@ -22,18 +23,20 @@ module.exports = {
         var rowWidth = props.seatWidth * props.seatsPerRow;
         return h('ul', {
             className : 'seat-row',
-            style: {width: (props.gridSize * 30 + (props.gridSize + 1)*4)+'px'}
+            style: {width: (props.gridSize * props.seatWidth + (props.gridSize + 1)*4)+'px'}
         }, props.row.map(function (seatNumber) {
             if(seatNumber !== '|' && seatNumber !== '-') {
                 return self.seat({
                     seatNumber : seatNumber,
                     isSelected : props.selected[seatNumber] === true,
                     isReserved : props.unavailable[seatNumber] === true,
-                    name : props.boxOfficeData[seatNumber]
+                    name : props.boxOfficeData[seatNumber],
+                    seatWidth : props.seatWidth
                 }, dispatch);
             } else {
                 if(seatNumber === '|') {
-                return self.aisle();
+                return self.aisle(
+                    {seatWidth: props.seatWidth});
                 } else if (seatNumber === '-') {
                     return h('hr');
                 }
@@ -54,11 +57,21 @@ module.exports = {
         }
         return h('li', {
             className : innerClassName,
+            style : {
+                height: props.seatWidth + 'px',
+                width: props.seatWidth + 'px'
+            },
             onclick : dispatch.bind(this, action)
         }, [props.name]);
     },
-    aisle: function(){
-        return h('li', {className: 'aisle'});
+    aisle: function(props){
+        return h('li', {
+            className: 'aisle',
+            style : {
+                width: props.seatWidth + 'px',
+                height: props.seatWidth + 'px'
+            }
+        });
     },
     instructions: function(props){
         return h('p', { className : "instructions"}, 

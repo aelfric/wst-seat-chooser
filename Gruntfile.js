@@ -8,6 +8,12 @@ module.exports = function(grunt) {
         // Metadata
         pkg : grunt.file.readJSON('package.json'),
         // Variables
+        browserify: {
+            dist: {
+                src : ['js/src/index.js'],
+                dest : 'js/bundle.js'
+            }
+        },
         paths : {
             // Base dir assets dir
             base : '',
@@ -37,12 +43,12 @@ module.exports = function(grunt) {
                 base_src : '<%= paths.base %>/<%= paths.sass.src %>', //Base source dir
                 base_dest : '<%= paths.base %>/<%= paths.sass.dest %>', //Base compile dir
             }
-        },
+        }
     });
 
     // Load task configurations
     grunt.loadTasks('grunt');
-
+    grunt.loadNpmTasks('grunt-browserify');
     // Default Tasks
     grunt.registerTask('build', ['phplint', 'jshint:all', 'uglify', ]);//'sass']);
     grunt.registerTask('watch_all', ['watch:js', 'watch:sass']);

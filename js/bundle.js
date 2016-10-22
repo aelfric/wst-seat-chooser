@@ -11726,7 +11726,7 @@ var actions = require('./actions.js');
 
 module.exports = {
 
-    init : function (numSeats, seatsSelected = [], inputId, initialState) {
+    init : function (numSeats, seatsSelected, inputId, initialState) {
         var selectedSeatsObj = {};
         seatsSelected.forEach(function (seatNumber) {
             selectedSeatsObj[seatNumber] = true;
@@ -11806,7 +11806,8 @@ module.exports = {
                 gridSize: props.gridSize,
                 selected: props.selected,
                 unavailable: props.unavailable,
-                boxOfficeData: props.boxOfficeData
+                boxOfficeData: props.boxOfficeData,
+                seatWidth: props.seatWidth
             }, dispatch);
         });
     },
@@ -11815,18 +11816,20 @@ module.exports = {
         var rowWidth = props.seatWidth * props.seatsPerRow;
         return h('ul', {
             className : 'seat-row',
-            style: {width: (props.gridSize * 30 + (props.gridSize + 1)*4)+'px'}
+            style: {width: (props.gridSize * props.seatWidth + (props.gridSize + 1)*4)+'px'}
         }, props.row.map(function (seatNumber) {
             if(seatNumber !== '|' && seatNumber !== '-') {
                 return self.seat({
                     seatNumber : seatNumber,
                     isSelected : props.selected[seatNumber] === true,
                     isReserved : props.unavailable[seatNumber] === true,
-                    name : props.boxOfficeData[seatNumber]
+                    name : props.boxOfficeData[seatNumber],
+                    seatWidth : props.seatWidth
                 }, dispatch);
             } else {
                 if(seatNumber === '|') {
-                return self.aisle();
+                return self.aisle(
+                    {seatWidth: props.seatWidth});
                 } else if (seatNumber === '-') {
                     return h('hr');
                 }
@@ -11847,11 +11850,21 @@ module.exports = {
         }
         return h('li', {
             className : innerClassName,
+            style : {
+                height: props.seatWidth + 'px',
+                width: props.seatWidth + 'px'
+            },
             onclick : dispatch.bind(this, action)
         }, [props.name]);
     },
-    aisle: function(){
-        return h('li', {className: 'aisle'});
+    aisle: function(props){
+        return h('li', {
+            className: 'aisle',
+            style : {
+                width: props.seatWidth + 'px',
+                height: props.seatWidth + 'px'
+            }
+        });
     },
     instructions: function(props){
         return h('p', { className : "instructions"}, 
@@ -11881,8 +11894,33 @@ var actionCreators = require('./actionCreators.js');
 var modal = require("./modal.js");
 var components = require('./components.js');
 
+if (typeof Object.assign != 'function') {
+    (function () {
+        Object.assign = function (target) {
+            'use strict';
+            // We must check against these specific cases.
+            if (target === undefined || target === null) {
+                throw new TypeError('Cannot convert undefined or null to object');
+            }
+
+            var output = Object(target);
+            for (var index = 1; index < arguments.length; index++) {
+                var source = arguments[index];
+                if (source !== undefined && source !== null) {
+                    for (var nextKey in source) {
+                        if (source.hasOwnProperty(nextKey)) {
+                            output[nextKey] = source[nextKey];
+                        }
+                    }
+                }
+            }
+            return output;
+        };
+    })();
+}
 var initialize = function (numSeats, preSelected, parentElementId, inputId,
-    modal, initialState) {
+    modal, initialState, seatWidth) {
+    initialState["seatWidth"] = 43;
     var store = reduce({}, 
         actionCreators.init(
             numSeats, 
@@ -11920,7 +11958,8 @@ var initialize = function (numSeats, preSelected, parentElementId, inputId,
             selected: store.selected,
             unavailable: store.unavailable,
             gridSize: store.gridSize,
-            boxOfficeData: store.boxOfficeData
+            boxOfficeData: store.boxOfficeData,
+            seatWidth: store.seatWidth
         }, dispatch),
         components.addToCartButton({
             selected: store.selected,
@@ -11930,6 +11969,14 @@ var initialize = function (numSeats, preSelected, parentElementId, inputId,
     }
 
 };
+
+function getSeatData(variation_id, callback){
+    jQuery.get({
+        url: "/seating_chart/display/",
+        data: {"variation_id":variation_id},
+        success: callback
+    });
+}
 
 jQuery(document).ready(function () {
     // A user cannot update their order quantity from the the shopping
@@ -11962,13 +12009,43 @@ jQuery(document).ready(function () {
                 modal, 
                 result);
         }
-        jQuery.get({
-            url: "/seating_chart/5445/",
-            data: {"variation_id":variation_id},
-            success: intializeModal
-        });
+        getSeatData(
+            variation_id,
+            intializeModal
+        );
         event.preventDefault();
     });
+
+    var BOX_OFFICE_CHART = 'box-office-chart';
+    if(jQuery('#box-office-chart').length){
+        jQuery('#btn-print').click(function(){
+            var restorepage = jQuery('body').html();
+            var restorehead = jQuery('head').html();
+            
+            var printcontent = jQuery('#'+BOX_OFFICE_CHART).html();
+
+            jQuery('head').html(jQuery('#wst_seat_chooser_style-css')[0].outerHTML);
+            jQuery('body').html(printcontent);
+
+            window.print();
+            jQuery('body').html(restorepage);
+            jQuery('head').html(restorehead);
+        });
+        jQuery('#wst-show-select').change(function(){
+            getSeatData(
+                jQuery(this).val(),
+                function(result){ 
+                    initialize(
+                        0,
+                        [], 
+                        BOX_OFFICE_CHART,
+                        null, 
+                        null, 
+                        result);
+                }
+            );
+        });
+    }
 });
 
 },{"./actionCreators.js":35,"./components.js":37,"./modal.js":39,"./reducer.js":40,"virtual-dom/create-element":8,"virtual-dom/diff":9,"virtual-dom/h":10,"virtual-dom/patch":11}],39:[function(require,module,exports){

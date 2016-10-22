@@ -1,71 +1,77 @@
-			#overlay {
-				position:fixed; 
-				top:0;
-				left:0;
-				width:100%;
-				height:100%;
-				background:#000;
-				opacity:0.5;
-				filter:alpha(opacity=50);
-			}
+#overlay {
+    position:fixed; 
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:#000;
+    opacity:0.5;
+    filter:alpha(opacity=50);
+}
 
-			#modal {
-				position:absolute;
-				background:url(tint20.png) 0 0 repeat;
-				background:rgba(0,0,0,0.2);
-				border-radius:14px;
-				padding:8px;
-			}
+#modal {
+    position:absolute;
+    background:url(tint20.png) 0 0 repeat;
+    background:rgba(0,0,0,0.2);
+    border-radius:14px;
+    padding:8px;
+}
 
-			#content {
-				border-radius:8px;
-				background:#fff;
-				padding:20px;
-			}
+#content {
+    border-radius:8px;
+    background:#fff;
+    padding:20px;
+}
 
-			#close {
-				position:absolute;
-				background:url(close.png) 0 0 no-repeat;
-				width:24px;
-				height:27px;
-				display:block;
-				text-indent:-9999px;
-				top:-7px;
-				right:-7px;
-			}
+#close {
+    position:absolute;
+    background:url(close.png) 0 0 no-repeat;
+    width:24px;
+    height:27px;
+    display:block;
+    text-indent:-9999px;
+    top:-7px;
+    right:-7px;
+}
 .container {text-align: center;}
 .seat-row li {
-	width: 30px;
-	height: 30px;
-	display: inline-block;
-	margin: 2px;
-	vertical-align: middle;
+    display: inline-block;
+    margin: 1px;
+    vertical-align: middle;
+    color: black;
+    font-size: 10px;
+    line-height: 1em;
 }
 
 .seat{
-	background-color: lightblue;
+    background-color: lightblue;
+    border: 1px solid lightblue;
 }
 .aisle {
-	background-color: inherit;
+    background-color: inherit;
+    border: 1px solid transparent;
 }	
 
 .seat.selected {background-color: lightgreen;}
-.seat.unavailable {background-color: grey;}
+.seat.unavailable {
+    background-color: #909090;
+    border-color: #909090;
+}
 .selections-remaining {font-weight: bold;}
 
 .seat-row{
-	position: relative;
-	overflow: hidden;
-	margin: 0 auto;;
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto;;
     text-align: left;
-	padding: 0;
+    padding: 0;
 }
 
 .stage {
-	height: 50px;
-	width: 500px;
-	margin: 25px auto;
-	border: 1px solid black;
+    height: 50px;
+    width: 500px;
+    margin: 25px auto;
+    border: 1px solid black;
 }
 
 .duplicate_seat_order_error {
